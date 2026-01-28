@@ -1,68 +1,38 @@
-//Test Push
-
-// Need to interface with memory 
-// Some external module with interface with this feeding in the weights and values
-    // These weights are already in memory
-    // So maybe some counter counts up the addresses to go to the ram to interface with this
-    // And same for output, every new value with a done signal is fed to ram
-
-//Question:
-    //Is inputs continuously streaming in? How to deal with this
-    //Weights and thresholds are stored in memory but what about inputs
-    //Answer:
-        //Use an I/O buffer
-
-// INPUTS
-    //CTRL
-        //START
-        //If this is a hidden layer (if it is then it will skip the threshold phase and output the sum)
-        //NUM of INPUTS expected / when to stop?
-        //RST
-    //DATA
-        //THRESHOLD (32 BIT)
-        //WEIGHTS (not sure how many bits come in)
-        //INPUTS (not sure how many bits come in)
-
-// OUTPUTS
-    //CTRL
-        //DONE
-    //DATA    
-        //Single bit of data out / or the entire sum if it is last step.
-
 module np_1 #(
-    parameter int WIDTH_EX_IN,
+    parameter int RAM_WIDTH,
     parameter int THRESHOLD_DATA_WIDTH
 ) 
 (
     input logic start,
-    input logic is_hidden,
-    input logic [WIDTH_EX_IN-1:0] num_expected_inputs,
+    input logic stop,
+    input logic is_hidden, //think about 
     input logic rst,
+    input logic clk,
     
     input logic [THRESHOLD_DATA_WIDTH-1:0] threshold,
-    input logic weight,
-    input logic data_in,
+    input logic [RAM_WIDTH-1:0] weights,
+    input logic [RAM_WIDTH-1:0] data_in,
 
     output logic done,
-    output logic data_out,
+    output logic data_out
 );
 
-    typedef enum logic [1:0] {
+    typedef enum logic [2:0] {
         IDLE,
-        WAIT,     
-        THRESHOLD,  
-        DONE,     
-        OPERATE    
+        CHECKSTOP,     
+        XNOR_OP,  
+        POPCOUNT_OP,     
+        THRESHOLD_OP,
+        OUTPUT  
     } state_t;
 
     state_t current_state, next_state;
-
-    logic [THRESHOLD_DATA_WIDTH-1:0] sum;
-    logic [WIDTH_EX_IN-1:0] count;
+    logic [RAM_WIDTH-1:0] after_xnor;
+    logic [RAM_WIDTH-1:0] sum;
 
     always_ff @(posedge clk or posedge rst) begin
         
-        if rst begin
+        if (rst) begin
             current_state <= IDLE;
         end else begin
             current_state <= next_state;
@@ -75,19 +45,35 @@ module np_1 #(
 
         case(current_state)
             IDLE: begin
-                if
+                if(start) begin
+                    next_state = CHECKSTOP;
+                end 
             end
-            WAIT: begin
-                
+            CHECKSTOP: begin
+                if(stop) begin
+                    next_state = THRESHOLD_OP;
+                end else begin
+                    next_state = XNOR_OP;
+                end
             end
-            THRESHOLD: begin
-                
+            XNOR_OP: begin
+                after_xnor = weights ~^ data_in;
+                next_state = POPCOUNT_OP;
             end
-            DONE: begin
-                
+            POPCOUNT_OP: begin
+                sum = $countones(after_xnor) + sum;
+                next_state = CHECKSTOP;
             end
-            OPERATE: begin
-                
+            THRESHOLD_OP: begin
+                if(sum > 128)begin
+                    data_out = 1;
+                end else begin
+                    data_out = 0;
+                end
+                next_state = OUTPUT;
+            end
+            OUTPUT: begin
+                next_state = IDLE;
             end
         endcase
     end
