@@ -60,3 +60,21 @@ module muxN #(
     assign y = in[sel];
 
 endmodule
+
+module counter #(
+    parameter int MAX = 64,
+    localparam int WIDTH = $clog2(MAX)
+)(
+    input logic clk,
+    input logic rstn,
+    output logic [WIDTH-1:0] out
+);
+always_ff @(posedge clk) begin
+    if (!rstn)
+        out <= '0;
+    else if (out == MAX-1)
+        out <= '0;
+    else
+        out <= out + 1;
+end
+endmodule
