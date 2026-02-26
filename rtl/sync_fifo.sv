@@ -1,3 +1,5 @@
+//has to be power of 2?
+
 module sync_fifo #(parameter DEPTH=8, DWIDTH=16)
 (
         input               	rstn,               // Active low reset
@@ -48,7 +50,11 @@ module sync_fifo #(parameter DEPTH=8, DWIDTH=16)
 endmodule
 
 
-module muxN #(
+// Wait I can just do stuff behaviorally
+
+/*
+
+module muxN #( //No need a demux
     parameter WIDTH = 8,
     parameter N = 4
 )(
@@ -60,3 +66,35 @@ module muxN #(
     assign y = in[sel];
 
 endmodule
+
+module counter #(
+    parameter int MAX = 64,
+    localparam int WIDTH = $clog2(MAX)
+)(
+    input logic clk,
+    input logic rstn,
+    output logic [WIDTH-1:0] out
+);
+always_ff @(posedge clk) begin
+    if (!rstn)
+        out <= '0;
+    else if (out == MAX-1)
+        out <= '0;
+    else
+        out <= out + 1;
+end
+endmodule
+
+
+module config_datapath #( 
+) (
+  
+);
+
+sync_fifo fifo1(
+  
+);
+  
+endmodule
+
+*/

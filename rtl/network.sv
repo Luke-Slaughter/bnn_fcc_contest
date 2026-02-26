@@ -1,3 +1,6 @@
+//to do - add ram here
+
+
 module np_1 #(
     parameter int RAM_WIDTH,
     parameter int THRESHOLD_DATA_WIDTH
