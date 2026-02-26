@@ -1,3 +1,5 @@
+//has to be power of 2?
+
 module sync_fifo #(parameter DEPTH=8, DWIDTH=16)
 (
         input               	rstn,               // Active low reset
@@ -48,6 +50,10 @@ module sync_fifo #(parameter DEPTH=8, DWIDTH=16)
 endmodule
 
 
+// Wait I can just do stuff behaviorally
+
+/*
+
 module muxN #( //No need a demux
     parameter WIDTH = 8,
     parameter N = 4
@@ -90,3 +96,5 @@ sync_fifo fifo1(
 );
   
 endmodule
+
+*/
