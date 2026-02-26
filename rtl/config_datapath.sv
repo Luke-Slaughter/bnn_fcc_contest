@@ -48,7 +48,7 @@ module sync_fifo #(parameter DEPTH=8, DWIDTH=16)
 endmodule
 
 
-module muxN #(
+module muxN #( //No need a demux
     parameter WIDTH = 8,
     parameter N = 4
 )(
@@ -77,4 +77,16 @@ always_ff @(posedge clk) begin
     else
         out <= out + 1;
 end
+endmodule
+
+
+module config_datapath #( 
+) (
+  
+);
+
+sync_fifo fifo1(
+  
+);
+  
 endmodule
