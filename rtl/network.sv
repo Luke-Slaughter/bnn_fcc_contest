@@ -1,6 +1,5 @@
 //to do - add ram here
 
-
 module np_1 #(
     parameter int RAM_WIDTH,
     parameter int THRESHOLD_DATA_WIDTH
@@ -39,6 +38,7 @@ module bnn_network #(
     input logic stop, 
     input logic is_hidden,
 
+    //We will get the following inputs from the config manager when we connect everything in the top_level
     input logic[LAYER_ONE-1 : 0] layerOneWeights,
     input logic[LAYER_TWO-1 : 0] layerTwoWeights,
     input logic[LAYER_THREE-1 : 0] layerThreeWeights,

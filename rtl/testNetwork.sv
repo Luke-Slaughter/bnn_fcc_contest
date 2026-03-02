@@ -21,8 +21,8 @@ endmodule
 
 
 module test_bnn_network #(
-    parameter int LAYER_ONE = 2;
-    parameter int LAYER_TWO = 3;
+    parameter int LAYER_ONE = 3;
+    parameter int LAYER_TWO = 2;
     parameter int LAYER_THREE = 2;
     // parameter int LAYER_FOUR = 10;
     parameter int RAM_WIDTH
@@ -36,14 +36,14 @@ module test_bnn_network #(
     input logic stop, 
     input logic is_hidden,
 
-    input logic[LAYER_ONE-1 : 0] layerOneWeights,
-    input logic[LAYER_TWO-1 : 0] layerTwoWeights,
-    input logic[LAYER_THREE-1 : 0] layerThreeWeights,
+    input logic[LAYER_ONE-1 : 0] bramLayerOneWeights,
+    input logic[LAYER_TWO-1 : 0] bramLayerTwoWeights,
+    input logic[LAYER_THREE-1 : 0] bramLayerThreeWeights,
     // input logic[LAYER_FOUR-1 : 0] layerFourWeights,
 
-    input logic[LAYER_ONE-1 : 0] layerOneThreshold,
-    input logic[LAYER_TWO-1 : 0] layerTwoThreshold,
-    input logic[LAYER_THREE-1 : 0] layerThreeThreshold,
+    input logic[LAYER_ONE-1 : 0] bramLayerOneThreshold,
+    input logic[LAYER_TWO-1 : 0] bramLayerTwoThreshold,
+    input logic[LAYER_THREE-1 : 0] bramLayerThreeThreshold,
     // input logic[LAYER_FOUR-1 : 0] layerFourThreshold
 
     output logic[LAYER_THREE-1 : 0] finalOutput
@@ -64,7 +64,7 @@ module test_bnn_network #(
     logic layerTwoDone;
     logic layerThreeDone;
     logic layerFourDone;
-
+    logic layer1Start, layer2Start, layer3Start.
 
 
     generate 
@@ -74,7 +74,7 @@ module test_bnn_network #(
                 .RAM_WIDTH(RAM_WIDTH),
                 .THRESHOLD_DATA_WIDTH(THRESHOLD_DATA_WIDTH)
             )neueronProc(
-                .start(start),
+                .start(layer1Start),
                 .stop(stop),
                 .is_hidden(is_hidden),
                 .rst(rst),
@@ -96,7 +96,7 @@ module test_bnn_network #(
                 .RAM_WIDTH(RAM_WIDTH),
                 .THRESHOLD_DATA_WIDTH(THRESHOLD_DATA_WIDTH)
             )neueronProc(
-                .start(start),
+                .start(layer2Start),
                 .stop(stop),
                 .is_hidden(is_hidden),
                 .rst(rst),
@@ -117,7 +117,7 @@ module test_bnn_network #(
                 .RAM_WIDTH(RAM_WIDTH),
                 .THRESHOLD_DATA_WIDTH(THRESHOLD_DATA_WIDTH)
             )neueronProc(
-                .start(start),
+                .start(layer3Start),
                 .stop(stop),
                 .is_hidden(is_hidden),
                 .rst(rst),
