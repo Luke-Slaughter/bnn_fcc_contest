@@ -4,10 +4,10 @@ module top_level_network #(
     parameter TOTAL_LAYERS = 4,
     parameter DATA_SIZE = 32,
     parameter LAYER_ONE_SIZE = 784,
-    parameter LAYER_ONE_SIZE = 256,
-    parameter LAYER_ONE_SIZE = 256,
-    parameter LAYER_ONE_SIZE = 10
-    parameter int TOPOLOGY[TOTAL_LAYERS] = '{0: 784, 1: 256, 2: 256, 3: 10, default: 0},  // 0: input, TOTAL_LAYERS-1: output
+    parameter LAYER_TWO_SIZE = 256,
+    parameter LAYER_THREE_SIZE = 256,
+    parameter LAYER_FOUR_SIZE = 10,
+    parameter int TOPOLOGY[TOTAL_LAYERS] = '{0: 784, 1: 256, 2: 256, 3: 10, default: 0}  // 0: input, TOTAL_LAYERS-1: output
 
 )(
     input logic clk,

@@ -1,6 +1,6 @@
 module neuron #(
     parameter INPUT_SIZE = 784,
-    parameter THRESHOLD_SIZE = 32;
+    parameter THRESHOLD_SIZE = 32
 
 )(
     input logic clk,
@@ -12,7 +12,7 @@ module neuron #(
 );
 
 integer i;
-logic accumulation(THRESHOLD_SIZE*2-1 : 0)
+logic accumulation(THRESHOLD_SIZE*2-1 : 0);
 
 always_ff @ (posedge clk) begin
 

@@ -1,7 +1,7 @@
 module bram #(
     parameter DATA_WIDTH = 8,
-    parameter ADDRESS_WIDTH = 8
-    parameter DATA_OUT_WIDTH = 784 ;
+    parameter ADDRESS_WIDTH = 8,
+    parameter DATA_OUT_WIDTH = 784
 )(
 
     input logic we,
