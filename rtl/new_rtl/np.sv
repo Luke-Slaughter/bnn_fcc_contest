@@ -11,9 +11,9 @@ module np #(
     input logic rst,
     input logic start,
     //previous input data
-    input logic input_array [INPUT_LAYER_SIZE-1 :0],
+    input logic [INPUT_LAYER_SIZE-1:0] input_array,
     //weight bram
-    output logic [$clog2(NEURONS_PER_NP)-1 :0] weight_addr,
+    output logic [$clog2(INPUT_LAYER_SIZE)-1:0] weight_addr,
     input logic [INPUT_LAYER_SIZE-1 :0] weight_data,
     //threshold bram
     output logic [$clog2(NEURONS_PER_NP)-1 :0] thres_addr,
