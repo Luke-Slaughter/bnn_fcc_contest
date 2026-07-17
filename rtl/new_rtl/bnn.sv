@@ -1,19 +1,19 @@
-module top_level_network #(
-    parameter NEURONS_PER_NP = 16,
+module bnn #(
     parameter CALC_LAYERS = 3,
     parameter TOTAL_LAYERS = 4,
-    parameter DATA_SIZE = 32,
+    parameter DATA_SIZE = 64,
     parameter LAYER_ONE_SIZE = 784,
     parameter LAYER_TWO_SIZE = 256,
     parameter LAYER_THREE_SIZE = 256,
     parameter LAYER_FOUR_SIZE = 10,
-    paramter ADDRESS_WIDTH = 16,
+    parameter ADDRESS_WIDTH = 16,
     parameter int TOPOLOGY[TOTAL_LAYERS] = '{0: 784, 1: 256, 2: 256, 3: 10, default: 0},  // 0: input, TOTAL_LAYERS-1: output
     parameter MAX_NP_PER_LAYER = (256+NEURONS_PER_NP-1)/NEURONS_PER_NP
+
 )(
     input logic clk,
     input logic rst,
-    input logic[LAYER_TWO_SIZE-1 : 0] inputImage,
+    input logic inputImage [LAYER_ONE_SIZE-1 : 0],
     input logic inputImageRdy,
     input logic l2dataRdy,
     input logic l3dataRdy,
@@ -22,23 +22,47 @@ module top_level_network #(
     output logic final_out [LAYER_FOUR_SIZE-1 : 0],
     //Do I NEED COUNT OUT??????????????????????????/
     //        .count_out        (bnn_count_out),
-    output logic final_out_valid;
+    output logic final_out_valid
 
 );
+    bnn #(
+        .LAYERS              (LAYERS),
+        .LAYER_ONE_SIZE      (TOPOLOGY[0]),done
+        .NUM_NEURONS         (NUM_NEURONS),
+        .PARALLEL_INPUTS     (INPUT_BUS_WIDTH / 8),
+        .PARALLEL_NEURONS    (PARALLEL_NEURONS),
+        .MAX_PARALLEL_INPUTS (MAX_PARALLEL_INPUTS),
+        .THRESHOLD_DATA_WIDTH(THRESHOLD_DATA_WIDTH)
+    ) bnn_main (
+        .clk              (clk),
+        .rst              (rst),
+        .en               (data_out_ready),
+        .ready            (bnn_ready),
+        .weight_wr_data   (weight_wr_data),
+        .weight_wr_en     (weight_wr_en),
+        .threshold_wr_data(threshold_wr_data),
+        .threshold_wr_en  (threshold_wr_en),
+        .data_in          (bnn_data_in),
+        .data_in_valid    (bnn_data_in_valid),
+        .data_out         (),
+        .count_out        (bnn_count_out),
+        .data_out_valid   (bnn_count_valid)
+    );
 
+    local param NEURONS_PER_NP = 16
     //2D array of wires that connect to all the WEIGHT BRAMs
     logic weight_we [CALC_LAYERS][MAX_NP_PER_LAYER];
     logic weight_re [CALC_LAYERS][];
-    logic[DATA_SIZE] weight_addr [CALC_LAYERS][MAX_NP_PER_LAYER]; //CHANGE SIZE OF ADDRESSES
-    logic[DATA_SIZE] weight_din [CALC_LAYERS][MAX_NP_PER_LAYER];
-    logic[DATA_SIZE] weight_dout [CALC_LAYERS][MAX_NP_PER_LAYER];
+    logic[DATA_SIZE-1] weight_addr [CALC_LAYERS][MAX_NP_PER_LAYER]; //CHANGE SIZE OF ADDRESSES
+    logic[DATA_SIZE-1] weight_din [CALC_LAYERS][MAX_NP_PER_LAYER];
+    logic[DATA_SIZE-1] weight_dout [CALC_LAYERS][MAX_NP_PER_LAYER]; 
     
     //2D array of wires that connect to all the THRESHOLD BRAMs
     logic thres_we [CALC_LAYERS][MAX_NP_PER_LAYER];
     logic thres_re [CALC_LAYERS][MAX_NP_PER_LAYER];
-    logic[DATA_SIZE] thres_addr [CALC_LAYERS][MAX_NP_PER_LAYER]; //CHANGE SIZE OF ADDRESSES
-    logic[DATA_SIZE] thres_din [CALC_LAYERS][MAX_NP_PER_LAYER];
-    logic[DATA_SIZE] thres_dout [CALC_LAYERS][MAX_NP_PER_LAYER];
+    logic[DATA_SIZE-1] thres_addr [CALC_LAYERS][MAX_NP_PER_LAYER]; //CHANGE SIZE OF ADDRESSES
+    logic[DATA_SIZE-1] thres_din [CALC_LAYERS][MAX_NP_PER_LAYER];
+    logic[DATA_SIZE-1] thres_dout [CALC_LAYERS][MAX_NP_PER_LAYER];
 
     logic layerTwoEnable, layerThreeEnable, layerFourEnable;
     logic layerTwoDone, layerThreeDone;
@@ -49,7 +73,7 @@ module top_level_network #(
 
     // logic[LAYER_ONE_SIZE-1 : 0] layerOneIn;
     // logic[LAYER_ONE_SIZE-1 : 0] layerOneOut;
-    logic[LAYER_TWO_SIZE-1 : 0] layerTwoIn;
+    //logic[LAYER_TWO_SIZE-1 : 0] layerTwoIn;
     logic[LAYER_TWO_SIZE-1 : 0] layerTwoOut;
     logic[LAYER_THREE_SIZE-1 : 0] layerThreeOut;
     logic[LAYER_FOUR_SIZE-1 : 0] layerFourOut;
@@ -57,21 +81,19 @@ module top_level_network #(
     assign layerTwoOut = {>>{layerTwoModuleOutput}};
     assign layerThreeOut = {>>{layerThreeModuleOutput}};
     assign layerFourOut = {>>{layerFourModuleOutput}};
-
-    assign layerOneOut = { << logic [NEURONS_PER_NP-1:0] {np_outputs} };
+    assign final_out = layerFourOut;
+    
+    //assign layerOneOut = { << logic [NEURONS_PER_NP-1:0] {np_outputs} };
 
     genvar i, j;
-    genvar k = 2'b1;
-
-
 
     generate 
         for(i = 0; i < CALC_LAYERS; i++) begin
-            for(j = 0 ; j < TOPOLOGY[k]/NEURONS_PER_NP; j++) begin
+            for(j = 0 ; j < TOPOLOGY[i+1]/NEURONS_PER_NP; j++) begin
 
                 bram #(
-                    .DATA_WIDTH(DATA_SIZE);
-                    .ADDRESS_WIDTH(NEURONS_PER_NP * TOPOLOGY[k-1]);
+                    .DATA_WIDTH(DATA_SIZE),
+                    .ADDRESS_WIDTH(NEURONS_PER_NP * TOPOLOGY[k-1])
                 ) weight_BRAM(
                     .we(weight_we[i][j]),
                     .re(weight_re[i][j]),
@@ -83,8 +105,8 @@ module top_level_network #(
                 );
 
                 bram #(
-                    .DATA_WIDTH(DATA_SIZE);
-                    .ADDRESS_WIDTH(NEURONS_PER_NP * TOPOLOGY[k-1]);
+                    .DATA_WIDTH(DATA_SIZE),
+                    .ADDRESS_WIDTH(NEURONS_PER_NP * TOPOLOGY[k-1])
                 ) threshold_BRAM(
                     .we(thres_we[i][j]),
                     .re(thres_re[i][j]),
@@ -106,8 +128,8 @@ module top_level_network #(
         .CALC_LAYERS(CALC_LAYERS),
         .TOTAL_LAYERS(TOTAL_LAYERS),
         .DATA_SIZE(DATA_SIZE),
-        .INPUT_LAYER_SIZE(LAYER_ONE_SIZE);
-        .CURRENT_LAYER_SIZE(LAYER_TWO_SIZE);
+        .INPUT_LAYER_SIZE(LAYER_ONE_SIZE),
+        .CURRENT_LAYER_SIZE(LAYER_TWO_SIZE),
         .ADDRESS_WIDTH(ADDRESS_WIDTH),
         //.LAYER_NP()
     ) layer_two_declaration (
@@ -129,8 +151,8 @@ module top_level_network #(
         .CALC_LAYERS(CALC_LAYERS),
         .TOTAL_LAYERS(TOTAL_LAYERS),
         .DATA_SIZE(DATA_SIZE),
-        .INPUT_LAYER_SIZE(LAYER_TWO_SIZE);
-        .CURRENT_LAYER_SIZE(LAYER_THREE_SIZE);
+        .INPUT_LAYER_SIZE(LAYER_TWO_SIZE),
+        .CURRENT_LAYER_SIZE(LAYER_THREE_SIZE),
         .ADDRESS_WIDTH(ADDRESS_WIDTH),
         //.LAYER_NP()
     ) layer_three_declaration (
@@ -144,7 +166,7 @@ module top_level_network #(
         .thres_addr(thres_addr[1]),
         .thres_data(thres_dout[1]),
         .np_output(layerThreeModuleOutput),
-        .done(final_out_valid)
+        .done(layerThreeDone)
     );
 
     layer #(
@@ -152,8 +174,8 @@ module top_level_network #(
         .CALC_LAYERS(CALC_LAYERS),
         .TOTAL_LAYERS(TOTAL_LAYERS),
         .DATA_SIZE(DATA_SIZE),
-        .INPUT_LAYER_SIZE(LAYER_THREE_SIZE);
-        .CURRENT_LAYER_SIZE(LAYER_FOUR_SIZE);
+        .INPUT_LAYER_SIZE(LAYER_THREE_SIZE),
+        .CURRENT_LAYER_SIZE(LAYER_FOUR_SIZE),
         .ADDRESS_WIDTH(ADDRESS_WIDTH),
         //.LAYER_NP()
     ) layer_four_declaration (
@@ -167,7 +189,7 @@ module top_level_network #(
         .thres_addr(thres_addr[2]),
         .thres_data(thres_dout[2]),
         .np_output(layerFourModuleOutput),
-        .done(layerFourDone)
+        .done(final_out_valid)
     );
 
     typedef enum logic [2:0] {

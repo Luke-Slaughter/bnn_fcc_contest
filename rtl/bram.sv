@@ -1,18 +1,18 @@
 module bram #(
-    parameter DATA_WIDTH = 8,
+    parameter DATA_WIDTH = 784,
     parameter ADDRESS_WIDTH = 8,
-    parameter DATA_OUT_WIDTH = 784
+    parameter DATA_OUT_WIDTH = 784,
+    parameter NEURONS_PER_NP = 2
 )(
 
     input logic we,
-    input logic re,
     input logic clk, 
     input logic rst,
-    input logic[ADDRESS_WIDTH-1 :0] address,
+    input logic[$clog2(NEURONS_PER_NP)-1:0] address,
     input logic[DATA_WIDTH-1 :0] data_in,
     output logic[DATA_OUT_WIDTH-1 :0] data_out
 );
-    logic [DATA_OUT_WIDTH-1:0] mem [0:(1<<ADDRESS_WIDTH)-1];
+    logic [DATA_OUT_WIDTH-1:0] mem [0:NEURONS_PER_NP-1];
 
     always_ff @(posedge clk) begin
 

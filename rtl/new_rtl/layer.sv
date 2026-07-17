@@ -56,8 +56,8 @@ module layer#(
                 .weight_data(weight_data[i]),
                 .thres_addr(thres_addr[i]),
                 .thres_data(thres_data[i]),
-                .np_output(np_output[i]),
-                .done(np_done_out[i]);
+                .np_output(np_outputs[i]),
+                .done(np_done_out[i])
 
             );
         end
